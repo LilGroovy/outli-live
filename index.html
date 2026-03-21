@@ -283,10 +283,17 @@
         }
         .mockup-panel {
           width: 100%;
-          min-height: 400px;
+          min-height: 0;
         }
         .mockup-img {
+          position: static;
+          display: none;
+          opacity: 1;
           max-width: 240px;
+          margin: 0 auto;
+        }
+        .mockup-img.active {
+          display: block;
         }
       }
 
