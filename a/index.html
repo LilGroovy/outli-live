@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join on Outli</title>
+  <meta name="description" content="Someone nearby wants company. Say what you want to do on Outli and meet people who want the same." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Outli" />
+  <meta property="og:title" content="Join me on Outli" />
+  <meta property="og:description" content="Someone nearby wants company. Tap to see what's on." />
+  <meta property="og:image" content="https://outli.live/Assets/og-share.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/Assets/App%20Icon%20Template-2.png" />
+  <!-- The Smart App Banner's "Open" hands this link to the app, which opens the activity. -->
+  <script>
+    document.write('<meta name="apple-itunes-app" content="app-id=6760399990, app-argument=' + location.href.replace(/"/g, '') + '">');
+  </script>
+  <style>
+    /* Outli's app colours: DesignToken.Color in the iOS app. */
+    :root {
+      --ink: #292722;
+      --secondary: #77736b;
+      --background: #fcfbf9;
+      --surface: #ffffff;
+      --border: #e8e4dc;
+      --amber: #ffb600;
+      --amber-soft: #fff1c9;
+      --amber-ink: #704b00;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f4f1ec;
+        --secondary: #a9a39a;
+        --background: #171614;
+        --surface: #22201d;
+        --border: #3a3631;
+        --amber-soft: #3b2f12;
+        --amber-ink: #ffd36b;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--background);
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 40px;
+    }
+    main { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 1.05rem; }
+    .brand img { width: 28px; height: 28px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .who { display: flex; align-items: center; gap: 10px; color: var(--secondary); font-size: 0.95rem; }
+    .who img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--border); }
+    .want { margin: 0; font-size: 1.6rem; line-height: 1.2; font-weight: 500; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+    .meta { color: var(--secondary); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+    .pill {
+      align-self: flex-start;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--amber-soft);
+      color: var(--amber-ink);
+    }
+    .pill.set { background: var(--ink); color: var(--background); }
+    .cta {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background: var(--amber);
+      color: #292722;
+      font-weight: 600;
+      font-size: 1.05rem;
+      padding: 15px 24px;
+      border-radius: 999px;
+    }
+    .note { margin: 0; color: var(--secondary); font-size: 0.9rem; text-align: center; line-height: 1.5; }
+    .about { margin: 0; color: var(--secondary); font-size: 0.95rem; line-height: 1.55; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="brand" href="/"><img src="/Assets/App%20Icon%20Template-2.png" alt="" />Outli</a>
+
+    <section class="card" id="activity" hidden>
+      <div class="who"><img id="owner-photo" alt="" hidden /><span id="who"></span></div>
+      <p class="want" id="want"></p>
+      <div class="meta" id="meta"></div>
+      <span class="pill" id="state"></span>
+    </section>
+
+    <section class="card" id="ended" hidden>
+      <p class="want">This one has ended.</p>
+      <div class="meta">It's over or was removed. There's more on Outli: say what you want to do and see who's in.</div>
+    </section>
+
+    <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Join on Outli</a>
+    <p class="note" id="note">Get Outli from the App Store, then open this link again to go straight to it.</p>
+
+    <p class="about">Outli is where people nearby say what they want to do, tonight, tomorrow or this weekend. Join, chat, and meet up.</p>
+  </main>
+
+  <script>
+    // Reads the activity like a guest in the app does: public activities are readable
+    // without signing in (firestore.rules). Shows the want, when and where, the first
+    // name and photo of who posted it, and how many are in. Nothing else.
+    const id = new URLSearchParams(location.search).get('id');
+    const $ = (el) => document.getElementById(el);
+
+    function ended() {
+      $('ended').hidden = false;
+      $('cta').textContent = 'See what else is on';
+      $('note').hidden = true;
+    }
+
+    const value = (field) => field && (field.stringValue ?? field.timestampValue ?? field.booleanValue ?? field.integerValue);
+    const sameDay = (a, b) => a.toDateString() === b.toDateString();
+
+    // Mirrors PostActivity.whenText(now:) in the app.
+    function whenText(when, whenDate) {
+      const labels = { tonight: 'Tonight', tomorrow: 'Tomorrow', weekend: 'This weekend', flexible: 'Any time' };
+      if (!when) return null;
+      if (!whenDate) return labels[when];
+      const now = new Date();
+      const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+      if (when === 'tonight' && !sameDay(whenDate, now)) return whenDate.toLocaleDateString('en-GB', { weekday: 'short' }) + ' night';
+      if (when === 'tomorrow' && sameDay(whenDate, now)) return 'Today';
+      if (when === 'tomorrow' && !sameDay(whenDate, tomorrow)) return whenDate.toLocaleDateString('en-GB', { weekday: 'long' });
+      return labels[when];
+    }
+
+    // Mirrors MeetupPlan.summary: "Fri, 20:00 · Das Gift" in the plan's own time zone.
+    function planText(plan) {
+      const startsAt = new Date(value(plan.startsAt));
+      const zone = value(plan.timeZone) || undefined;
+      const day = startsAt.toLocaleDateString('en-GB', { weekday: 'short', timeZone: zone });
+      const time = startsAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: zone });
+      return [`${day}, ${time}`, value(plan.venueName)].filter(Boolean).join(' · ');
+    }
+
+    async function load() {
+      if (!id) return ended();
+      const url = `https://firestore.googleapis.com/v1/projects/groupitv2/databases/(default)/documents/activities/${encodeURIComponent(id)}`;
+      const response = await fetch(url).catch(() => null);
+      if (!response || !response.ok) return ended();
+      const f = (await response.json()).fields || {};
+      if (value(f.isPrivate) === true) return ended();
+
+      // Mirrors PostActivity.lifecycleState: past its expiry, or quiet for 14 days.
+      const now = Date.now();
+      const expiresAt = value(f.expiresAt) && Date.parse(value(f.expiresAt));
+      const lastActive = Date.parse(value(f.lastEngagementAt) || value(f.latestMessageTimestamp) || value(f.timestamp) || 0);
+      if ((expiresAt && expiresAt < now) || (!f.plan && lastActive < now - 14 * 86400000)) return ended();
+
+      const owner = value(f.ownerName) || 'Someone';
+      const plan = f.plan && f.plan.mapValue && f.plan.mapValue.fields;
+      const people = (f.memberIds && f.memberIds.arrayValue && f.memberIds.arrayValue.values || []).length;
+      const details = plan
+        ? [planText(plan)]
+        : [whenText(value(f.when), value(f.whenDate) && new Date(value(f.whenDate))), value(f.areaName)].filter(Boolean);
+
+      document.title = `${owner} wants to ${value(f.text)} · Outli`;
+      $('who').textContent = `${owner} wants to`;
+      $('want').textContent = value(f.text);
+      $('meta').textContent = [...details, people > 1 ? `${people} people in` : null].filter(Boolean).join(' · ');
+      $('meta').hidden = $('meta').textContent === '';
+      $('state').textContent = plan ? 'Plan set' : people > 1 ? 'Planning' : 'Open';
+      $('state').classList.toggle('set', Boolean(plan));
+      if (value(f.ownerProfileImageUrl)) {
+        $('owner-photo').src = value(f.ownerProfileImageUrl);
+        $('owner-photo').hidden = false;
+      }
+      $('activity').hidden = false;
+    }
+
+    load();
+  </script>
+</body>
+</html>

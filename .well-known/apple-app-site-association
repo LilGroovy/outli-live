@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["YLP246S525.com.nikolaialtergott.GroupItV2"],
+        "components": [
+          { "/": "/a/*", "comment": "A shared activity: outli.live/a/?id=..." },
+          { "/": "/a", "comment": "The same without the trailing slash" }
+        ]
+      }
+    ]
+  }
+}

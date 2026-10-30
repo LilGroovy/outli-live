@@ -23,6 +23,8 @@ One unified site at `outli.live` (GitHub Pages, CNAME). The marketing homepage i
 - `support.html` — Support page with FAQ
 - `styles.css` — Shared stylesheet (common styles extracted from inline `<style>` blocks)
 - `outli_homepage_build_brief.md` — Spec for the marketing homepage
+- `a/index.html` — Shared activity page (`outli.live/a/?id=<activityId>`), the link the app's Share button sends. Reads the public activity from Firestore's REST API without signing in (the same fields a guest sees in the app: want, when/area or plan, first name and photo, how many are in) and links to the App Store; an ended or private activity shows "This one has ended". Static Open Graph tags with `Assets/og-share.png`.
+- `.well-known/apple-app-site-association` — Universal links: `/a/*` opens in the Outli app (team `YLP246S525`, bundle `com.nikolaialtergott.GroupItV2`). Served because of `.nojekyll`; keep both.
 
 ## Architecture & Conventions
 
