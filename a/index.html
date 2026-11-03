@@ -13,7 +13,7 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" href="/Assets/App%20Icon%20Template-2.png" />
+  <link rel="icon" href="/Assets/app-icon.png" />
   <!-- The Smart App Banner's "Open" hands this link to the app, which opens the activity. -->
   <script>
     document.write('<meta name="apple-itunes-app" content="app-id=6760399990, app-argument=' + location.href.replace(/"/g, '') + '">');
@@ -55,7 +55,7 @@
     }
     main { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 24px; }
     .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 1.05rem; }
-    .brand img { width: 28px; height: 28px; }
+    .brand img { width: 28px; height: 28px; border-radius: 7px; }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -96,7 +96,7 @@
 </head>
 <body>
   <main>
-    <a class="brand" href="/"><img src="/Assets/App%20Icon%20Template-2.png" alt="" />Outli</a>
+    <a class="brand" href="/"><img src="/Assets/app-icon.png" alt="" />Outli</a>
 
     <section class="card" id="activity" hidden>
       <div class="who"><img id="owner-photo" alt="" hidden /><span id="who"></span></div>

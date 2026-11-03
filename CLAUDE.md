@@ -57,3 +57,9 @@ See `outli_homepage_build_brief.md` for full details. Key constraints:
 - Must be live before April 1, 2026 (TU Berlin orientation deadline)
 - Sections: Hero, How It Works, The Feeling, For Partners/Orgs, Footer
 - Partner contact: hello@outli.live
+
+## Brand assets
+
+- `Assets/app-icon.png` — the G3 flower app icon (white petals on amber, 512 px), used for favicons and the nav/hero logo. Source: Logo / Mark in the Outli-Assets Figma file; the app's own icon is `GroupItV2/AppIcon4.icon`.
+- `Assets/AppMockups/*.png` — phone mockups for "How it works", rendered from the app's screenshot-mode captures (`marketing/app-store/raw/` in the app repo).
+- `Assets/samples/*.jpg` — AI-generated sample portraits used by the app's screenshot mode. Not linked from any page.
