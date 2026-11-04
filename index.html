@@ -10,7 +10,51 @@
       name="description"
       content="Outli shows you what's happening around you — and who's going. Meet people, do things, stop waiting."
     />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)" />
+    <!-- iOS Safari shows an "Open / Get" banner for the app at the top of the page. -->
+    <meta name="apple-itunes-app" content="app-id=6760399990" />
+    <!-- Link previews in WhatsApp, iMessage, Instagram. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Outli" />
+    <meta property="og:url" content="https://outli.live/" />
+    <meta property="og:title" content="Outli — say what you want to do, meet who's up for it" />
+    <meta property="og:description" content="New city, don't know anyone? Say what you'd like to do and find people nearby who want the same." />
+    <meta property="og:image" content="https://outli.live/Assets/og-share.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <style>
+      /* Outli's app colours: DesignToken.Color in the iOS app. */
+      :root {
+        --ink: #292722;
+        --secondary: #77736b;
+        --background: #fcfbf9;
+        --border: #e8e4dc;
+        --muted: #f2efe9;
+        --wash: #fff7e0;
+        --amber: #ffb600;
+        --amber-soft: #fff1c9;
+        --amber-ink: #704b00;
+        /* Text and buttons on the amber band stay the same in both themes. */
+        --on-amber: #292722;
+        --on-amber-soft: #5c4300;
+        --on-amber-button: #fcfbf9;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f4f1ec;
+          --secondary: #a9a39a;
+          --background: #171614;
+          --border: #3a3631;
+          --muted: #2d2a26;
+          --wash: #211c12;
+          --amber-soft: #3b2f12;
+          --amber-ink: #ffd36b;
+        }
+      }
+
       *,
       *::before,
       *::after {
@@ -23,9 +67,17 @@
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
-        background: #fffcf2;
-        color: #1a1a1a;
+        background: var(--background);
+        color: var(--ink);
         line-height: 1.6;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
       }
 
       /* NAV */
@@ -38,7 +90,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 16px 24px;
-        background: rgba(255, 252, 242, 0.88);
+        background: color-mix(in srgb, var(--background) 88%, transparent);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         z-index: 100;
@@ -48,7 +100,7 @@
         align-items: center;
         gap: 8px;
         text-decoration: none;
-        color: #1a1a1a;
+        color: var(--ink);
       }
       .nav-logo img {
         width: 28px;
@@ -61,13 +113,27 @@
         letter-spacing: -0.02em;
       }
       .nav-cta {
-        background: #ffb600;
-        color: #1a1a1a;
+        background: var(--amber);
+        color: var(--on-amber);
         font-size: 0.875rem;
         font-weight: 600;
         text-decoration: none;
         padding: 8px 18px;
         border-radius: 50px;
+      }
+      .nav-cta-short {
+        display: none;
+      }
+      @media (max-width: 420px) {
+        .site-nav {
+          padding: 12px 16px;
+        }
+        .nav-cta-long {
+          display: none;
+        }
+        .nav-cta-short {
+          display: inline;
+        }
       }
 
       /* HERO */
@@ -93,21 +159,21 @@
         font-weight: 700;
         line-height: 1.2;
         letter-spacing: -0.025em;
-        color: #1a1a1a;
         max-width: 560px;
         margin: 0;
       }
       .hero-divider {
         width: 32px;
         height: 3px;
-        background: #ffb600;
+        background: var(--amber);
         border-radius: 2px;
         margin: 28px auto;
       }
       .hero-bridge {
         font-size: clamp(1rem, 2.5vw, 1.2rem);
         font-weight: 600;
-        color: #ffb600;
+        /* Plain amber on cream is ~1.8:1 and hard to read; amber ink keeps the warmth. */
+        color: var(--amber-ink);
         max-width: 480px;
         margin: 0;
       }
@@ -115,7 +181,6 @@
         font-size: clamp(1rem, 2.2vw, 1.15rem);
         font-weight: 400;
         line-height: 1.65;
-        color: #1a1a1a;
         max-width: 480px;
         margin: 0 0 40px;
       }
@@ -129,8 +194,8 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background: #ffb600;
-        color: #1a1a1a;
+        background: var(--amber);
+        color: var(--on-amber);
         font-size: 1rem;
         font-weight: 600;
         text-decoration: none;
@@ -143,25 +208,12 @@
         box-shadow: 0 8px 24px rgba(255, 182, 0, 0.4);
       }
       .btn-learn {
-        color: #888;
+        color: var(--secondary);
         font-size: 0.9rem;
         text-decoration: none;
       }
       .btn-learn:hover {
-        color: #1a1a1a;
-      }
-      .pending-note {
-        font-size: 0.8rem;
-        color: #888;
-        margin: -4px 0 0;
-        text-align: center;
-      }
-      .pending-note a {
-        color: #007aff;
-        text-decoration: none;
-      }
-      .pending-note a:hover {
-        text-decoration: underline;
+        color: var(--ink);
       }
 
       /* SECTIONS */
@@ -182,7 +234,7 @@
 
       /* HOW IT WORKS */
       #how-it-works {
-        border-top: 1px solid #ede8d8;
+        border-top: 1px solid var(--border);
       }
       #how-it-works .section-inner {
         max-width: 900px;
@@ -199,6 +251,13 @@
         gap: 4px;
       }
       .step-tab {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: none;
         padding: 16px 20px;
         border-left: 3px solid transparent;
         cursor: pointer;
@@ -206,33 +265,40 @@
         transition: border-color 0.2s ease, background 0.2s ease;
       }
       .step-tab:hover {
-        background: rgba(255, 182, 0, 0.06);
+        background: color-mix(in srgb, var(--amber) 6%, transparent);
+      }
+      .step-tab:focus-visible {
+        outline: 2px solid var(--amber);
+        outline-offset: 2px;
       }
       .step-tab.active {
-        border-left-color: #ffb600;
-        background: rgba(255, 182, 0, 0.08);
+        border-left-color: var(--amber);
+        background: color-mix(in srgb, var(--amber) 10%, transparent);
       }
       .step-tab-num {
+        display: block;
         font-size: 0.65rem;
         font-weight: 700;
-        color: #ffb600;
+        color: var(--amber-ink);
         letter-spacing: 0.1em;
         text-transform: uppercase;
         margin-bottom: 2px;
       }
       .step-tab-title {
+        display: block;
         font-size: 1rem;
         font-weight: 700;
-        color: #aaa;
+        color: var(--secondary);
         margin: 0 0 4px;
         transition: color 0.2s ease;
       }
       .step-tab.active .step-tab-title {
-        color: #1a1a1a;
+        color: var(--ink);
       }
       .step-tab-desc {
+        display: block;
         font-size: 0.875rem;
-        color: #888;
+        color: var(--secondary);
         margin: 0;
         line-height: 1.5;
       }
@@ -277,11 +343,11 @@
           border-bottom: 2px solid transparent;
           border-radius: 8px;
           padding: 12px 14px;
-          background: rgba(0, 0, 0, 0.03);
+          background: var(--muted);
         }
         .step-tab.active {
-          border-bottom-color: #ffb600;
-          background: rgba(255, 182, 0, 0.08);
+          border-bottom-color: var(--amber);
+          background: color-mix(in srgb, var(--amber) 12%, transparent);
         }
         .step-tab-desc {
           display: none;
@@ -289,10 +355,12 @@
         .mobile-step-desc {
           display: block;
           font-size: 0.875rem;
-          color: #666;
+          color: var(--secondary);
           line-height: 1.5;
           margin: 0;
           text-align: center;
+          /* Two lines reserved so the phone below doesn't jump between steps. */
+          min-height: 3em;
         }
         .mockup-panel {
           width: 100%;
@@ -312,13 +380,13 @@
 
       /* THE FEELING */
       #the-feeling {
-        background: #fff7e0;
-        border-top: 1px solid #ede8d8;
-        border-bottom: 1px solid #ede8d8;
+        background: var(--wash);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
       }
       .feeling-text {
         font-size: clamp(1rem, 2.2vw, 1.1rem);
-        color: #444;
+        color: var(--secondary);
         line-height: 1.8;
         max-width: 580px;
         margin: 0 auto;
@@ -327,17 +395,18 @@
 
       /* CTA */
       #cta {
-        background: #ffb600;
+        background: var(--amber);
+        color: var(--on-amber);
         padding: 96px 24px;
         text-align: center;
       }
       #cta .section-inner {
-        max-width: 600px;
+        max-width: 640px;
       }
       .cta-prompt {
         font-size: clamp(1rem, 2.5vw, 1.25rem);
         font-weight: 500;
-        color: rgba(61, 48, 0, 0.6);
+        color: var(--on-amber-soft);
         margin: 0 0 10px;
       }
       .activity-display {
@@ -345,35 +414,26 @@
         font-weight: 700;
         letter-spacing: -0.03em;
         line-height: 1.1;
-        color: #1a1a1a;
         margin: 0 0 48px;
-        min-height: 1.2em;
-      }
-      .activity-word {
-        display: inline;
-      }
-      .activity-word.exit {
-        animation: actExit 0.25s ease forwards;
-      }
-      .activity-word.enter {
-        animation: actEnter 0.25s ease forwards;
-      }
-      @keyframes actExit {
-        to { opacity: 0; transform: translateY(-12px); }
-      }
-      @keyframes actEnter {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
+        /* Room for two lines, so a long activity never pushes the page around. */
+        min-height: 2.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .activity-cursor {
         display: inline-block;
         width: 3px;
-        height: 0.8em;
-        background: #1a1a1a;
-        margin-left: 3px;
-        vertical-align: middle;
+        height: 0.85em;
+        background: var(--on-amber);
+        margin-left: 4px;
+        vertical-align: -0.08em;
         border-radius: 1px;
         animation: blink 1s step-end infinite;
+      }
+      /* A real caret stays solid while you type and only blinks when you stop. */
+      .activity-display.typing .activity-cursor {
+        animation: none;
       }
       @keyframes blink {
         0%, 100% { opacity: 1; }
@@ -381,7 +441,7 @@
       }
       .cta-bridge {
         font-size: clamp(1rem, 2.2vw, 1.15rem);
-        color: #3d3000;
+        color: var(--on-amber-soft);
         margin: 0 0 36px;
         line-height: 1.6;
       }
@@ -389,8 +449,8 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background: #1a1a1a;
-        color: #fffcf2;
+        background: var(--on-amber);
+        color: var(--on-amber-button);
         font-size: 1rem;
         font-weight: 600;
         text-decoration: none;
@@ -414,7 +474,7 @@
         gap: 8px;
         margin-bottom: 20px;
         text-decoration: none;
-        color: #1a1a1a;
+        color: var(--ink);
       }
       .footer-logo img {
         width: 28px;
@@ -435,16 +495,20 @@
         font-size: 0.875rem;
       }
       .footer-links a {
-        color: #777;
+        color: var(--secondary);
         text-decoration: none;
       }
       .footer-links a:hover {
-        color: #1a1a1a;
+        color: var(--ink);
       }
-      .footer-byline {
-        font-size: 0.8rem;
-        color: #bbb;
-        margin: 0;
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .activity-cursor {
+          animation: none;
+        }
       }
     </style>
   </head>
@@ -452,10 +516,13 @@
     <!-- NAV -->
     <nav class="site-nav">
       <a href="index.html" class="nav-logo">
-        <img src="Assets/app-icon.png" alt="Outli" />
+        <img src="Assets/app-icon.png" alt="" />
         <span class="nav-logo-name">Outli</span>
       </a>
-      <a href="https://apps.apple.com/us/app/outli/id6760399990" target="_blank" rel="noopener" class="nav-cta">Download on the App Store</a>
+      <a href="https://apps.apple.com/us/app/outli/id6760399990" target="_blank" rel="noopener" class="nav-cta">
+        <span class="nav-cta-long">Download on the App Store</span>
+        <span class="nav-cta-short">Get the app</span>
+      </a>
     </nav>
 
     <!-- HERO -->
@@ -464,7 +531,7 @@
         <img src="Assets/app-icon.png" alt="Outli logo" />
       </div>
       <h1 class="hero-headline">
-        New City. So much to experience.<br />But don't know anyone?<br />So you
+        New city. So much to experience.<br />But don't know anyone?<br />So you
         scroll.
       </h1>
       <div class="hero-divider" aria-hidden="true"></div>
@@ -501,33 +568,33 @@
         <h2 class="section-title">It's simple</h2>
         <div class="how-it-works-layout">
           <div class="step-tabs">
-            <div class="step-tab active" data-step="0">
-              <div class="step-tab-num">01</div>
-              <div class="step-tab-title">I want to...</div>
-              <p class="step-tab-desc">Sign up and finish the sentence. Tell Outli what you're up for — coffee, football, museum, anything.</p>
-            </div>
-            <div class="step-tab" data-step="1">
-              <div class="step-tab-num">02</div>
-              <div class="step-tab-title">Join in one tap</div>
-              <p class="step-tab-desc">See what people nearby want to do. Tap Join and you're straight in the chat.</p>
-            </div>
-            <div class="step-tab" data-step="2">
-              <div class="step-tab-num">03</div>
-              <div class="step-tab-title">Do what you love</div>
-              <p class="step-tab-desc">Show up. Do the thing. Meet your people. Together.</p>
-            </div>
-            <div class="step-tab" data-step="3">
-              <div class="step-tab-num">04</div>
-              <div class="step-tab-title">Do it again</div>
-              <p class="step-tab-desc">Keep going. Build your social circle, one activity at a time.</p>
-            </div>
+            <button type="button" class="step-tab active" aria-pressed="true">
+              <span class="step-tab-num">01</span>
+              <span class="step-tab-title">I want to...</span>
+              <span class="step-tab-desc">Sign up and finish the sentence. Tell Outli what you're up for — coffee, football, museum, anything.</span>
+            </button>
+            <button type="button" class="step-tab" aria-pressed="false">
+              <span class="step-tab-num">02</span>
+              <span class="step-tab-title">Join in one tap</span>
+              <span class="step-tab-desc">See what people nearby want to do. Tap Join and you're straight in the chat.</span>
+            </button>
+            <button type="button" class="step-tab" aria-pressed="false">
+              <span class="step-tab-num">03</span>
+              <span class="step-tab-title">Do what you love</span>
+              <span class="step-tab-desc">Show up. Do the thing. Meet your people. Together.</span>
+            </button>
+            <button type="button" class="step-tab" aria-pressed="false">
+              <span class="step-tab-num">04</span>
+              <span class="step-tab-title">Do it again</span>
+              <span class="step-tab-desc">Keep going. Build your social circle, one activity at a time.</span>
+            </button>
           </div>
-          <p class="mobile-step-desc">Sign up and finish the sentence. Tell Outli what you're up for — coffee, football, museum, anything.</p>
+          <p class="mobile-step-desc" aria-live="polite"></p>
           <div class="mockup-panel">
-            <img class="mockup-img active" src="Assets/AppMockups/Discover-Post.png" alt="Post what you want to do" />
-            <img class="mockup-img" src="Assets/AppMockups/Discover-Main.png" alt="Explore activities around you" />
-            <img class="mockup-img" src="Assets/AppMockups/Organize-Chat.png" alt="Chat with your group" />
-            <img class="mockup-img" src="Assets/AppMockups/Discover-Detail.png" alt="Join an activity" />
+            <img class="mockup-img active" src="Assets/AppMockups/Discover-Post.png" alt="Saying what you want to do in Outli" />
+            <img class="mockup-img" src="Assets/AppMockups/Discover-Detail.png" alt="An activity with a Join button" />
+            <img class="mockup-img" src="Assets/AppMockups/Organize-Chat.png" alt="The group chat for an activity" />
+            <img class="mockup-img" src="Assets/AppMockups/Discover-Main.png" alt="Activities around you in Discover" />
           </div>
         </div>
       </div>
@@ -551,10 +618,11 @@
     <!-- CTA -->
     <section id="cta">
       <div class="section-inner">
-        <p class="cta-prompt">I want to</p>
-        <p class="activity-display">
-          <span class="activity-word">ride a bike</span><span class="activity-cursor" aria-hidden="true"></span>
+        <p class="cta-prompt" aria-hidden="true">I want to</p>
+        <p class="activity-display" aria-hidden="true">
+          <span><span class="activity-text">ride a bike</span><span class="activity-cursor"></span></span>
         </p>
+        <p class="sr-only">I want to ride a bike, play chess, try ramen, visit a museum — and someone nearby wants the same.</p>
         <p class="cta-bridge">Someone nearby is thinking the exact same thing.</p>
         <a href="https://apps.apple.com/us/app/outli/id6760399990" target="_blank" rel="noopener" class="btn-dark">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -568,52 +636,51 @@
     <!-- FOOTER -->
     <footer>
       <a href="index.html" class="footer-logo">
-        <img src="Assets/app-icon.png" alt="Outli" />
+        <img src="Assets/app-icon.png" alt="" />
         <span>Outli</span>
       </a>
       <div class="footer-links">
         <a href="https://apps.apple.com/us/app/outli/id6760399990" target="_blank" rel="noopener">Download on the App Store</a>
         <a href="mailto:hello@outli.live">hello@outli.live</a>
-<a href="privacy.html">Privacy Policy</a>
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="termsofuse.html">Terms of Use</a>
       </div>
     </footer>
     <script>
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // How it works: rotates on its own until someone picks a step.
       const tabs = document.querySelectorAll(".step-tab");
       const mockups = document.querySelectorAll(".mockup-img");
       const mobileDesc = document.querySelector(".mobile-step-desc");
-      const stepDescs = [
-        "Sign up and finish the sentence. Tell Outli what you're up for — coffee, football, museum, anything.",
-        "See what people nearby want to do. Tap Join and you're straight in the chat.",
-        "Show up. Do the thing. Meet your people. Together.",
-        "Keep going. Build your social circle, one activity at a time.",
-      ];
       let currentStep = 0;
       let autoTimer;
 
       function goToStep(n) {
         tabs[currentStep].classList.remove("active");
+        tabs[currentStep].setAttribute("aria-pressed", "false");
         mockups[currentStep].classList.remove("active");
         currentStep = (n + tabs.length) % tabs.length;
         tabs[currentStep].classList.add("active");
+        tabs[currentStep].setAttribute("aria-pressed", "true");
         mockups[currentStep].classList.add("active");
-        mobileDesc.textContent = stepDescs[currentStep];
-      }
-
-      function resetTimer() {
-        clearInterval(autoTimer);
-        autoTimer = setInterval(() => goToStep(currentStep + 1), 3500);
+        mobileDesc.textContent = tabs[currentStep].querySelector(".step-tab-desc").textContent;
       }
 
       tabs.forEach((tab, i) => {
         tab.addEventListener("click", () => {
+          clearInterval(autoTimer);
           goToStep(i);
-          resetTimer();
         });
       });
 
-      resetTimer();
+      goToStep(0);
+      if (!reduceMotion) {
+        autoTimer = setInterval(() => goToStep(currentStep + 1), 3500);
+      }
 
-      // Activity cycling
+      // "I want to …": typed out, held, erased, next.
       const activities = [
         "ride a bike",
         "sample cheese",
@@ -640,21 +707,41 @@
         "take a photography walk",
         "play volleyball",
       ];
-      let actIdx = 0;
-      const actWord = document.querySelector(".activity-word");
+      const display = document.querySelector(".activity-display");
+      const text = document.querySelector(".activity-text");
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      function cycleActivity() {
-        actWord.classList.add("exit");
-        setTimeout(() => {
-          actIdx = (actIdx + 1) % activities.length;
-          actWord.textContent = activities[actIdx];
-          actWord.classList.remove("exit");
-          actWord.classList.add("enter");
-          setTimeout(() => actWord.classList.remove("enter"), 250);
-        }, 250);
+      async function typeActivities() {
+        let i = 0;
+        await wait(1800); // the first one is already on screen
+        for (;;) {
+          display.classList.add("typing");
+          for (let n = text.textContent.length; n >= 0; n--) {
+            text.textContent = activities[i].slice(0, n);
+            await wait(28);
+          }
+          i = (i + 1) % activities.length;
+          await wait(250);
+          for (let n = 1; n <= activities[i].length; n++) {
+            text.textContent = activities[i].slice(0, n);
+            // A little unevenness reads as a person typing, not a ticker.
+            await wait(55 + Math.random() * 45);
+          }
+          display.classList.remove("typing");
+          await wait(1800);
+        }
       }
 
-      setInterval(cycleActivity, 2500);
+      async function swapActivities() {
+        let i = 0;
+        for (;;) {
+          await wait(3000);
+          i = (i + 1) % activities.length;
+          text.textContent = activities[i];
+        }
+      }
+
+      reduceMotion ? swapActivities() : typeActivities();
     </script>
   </body>
 </html>
