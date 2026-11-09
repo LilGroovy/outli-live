@@ -1,17 +1,53 @@
-// The activity's card as the link preview image (1200×630), in Outli's colours:
-// when, who wants to do what, where, and Outli. Ended or unknown → the generic image.
+// The activity's card as the link preview image (1200×630): when, who (with their
+// face), what, where and who's in, and one action. Light, airy and warm like the
+// app: one full-bleed wash, no frames or shadows, Inter (SF Pro may not be used in
+// server-rendered images). Ended or unknown → the generic image.
 import { ImageResponse } from '@vercel/og';
 
 export const config = { runtime: 'edge' };
 
 const PREVIEW_URL = 'https://europe-west1-groupitv2.cloudfunctions.net/activityPreview';
+const FONT_URL = (weight) => `https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-${weight}-normal.woff`;
 const LABELS = { tonight: 'Tonight', tomorrow: 'Tomorrow', weekend: 'This weekend', flexible: 'Any time' };
+
+// Outli's colours (DesignToken.Color in the app). Until the app stores each activity's
+// hue, every card uses the warm amber wash.
+const INK = '#292722';
+const SECONDARY = '#6f6b63';
+const WASH = '#fff1c9';
+const AMBER = '#ffb600';
 
 // A tiny element helper so this stays plain JavaScript (no JSX build step).
 const el = (type, style, ...children) => ({
   type,
   props: { style: { display: 'flex', ...style }, children: children.filter((child) => child != null && child !== '') },
 });
+const img = (src, size, style = {}) => ({ type: 'img', props: { src, width: size, height: size, style: { width: size, height: size, ...style } } });
+
+const font = (weight) => fetch(FONT_URL(weight)).then((response) => response.arrayBuffer());
+
+// Storage serves photos without an image type; pass them on as data URLs the renderer accepts.
+async function photo(url) {
+  if (!url) return null;
+  try {
+    const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+    const type = bytes[0] === 0x89 ? 'image/png' : 'image/jpeg';
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return `data:${type};base64,${btoa(binary)}`;
+  } catch {
+    return null;
+  }
+}
+
+// "Fri, 20:00" in the plan's own time zone, as MeetupPlan.summary does.
+function planTime(plan) {
+  const startsAt = new Date(plan.startsAt);
+  const zone = plan.timeZone || undefined;
+  const day = startsAt.toLocaleDateString('en-GB', { weekday: 'short', timeZone: zone });
+  const time = startsAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: zone });
+  return `${day}, ${time}`;
+}
 
 export default async function handler(req) {
   const url = new URL(req.url);
@@ -21,19 +57,43 @@ export default async function handler(req) {
     .catch(() => null);
   if (!preview || preview.ended) return Response.redirect(new URL('/Assets/og-share.png', url), 302);
 
-  const when = preview.plan ? 'Plan set' : LABELS[preview.when];
+  const [regular, medium, face] = await Promise.all([font(400), font(500), photo(preview.ownerPhotoUrl)]);
+
+  const when = preview.plan ? planTime(preview.plan) : LABELS[preview.when];
   const where = preview.plan ? preview.plan.venueName : preview.placeName || preview.areaName;
+  const details = [where, preview.peopleCount > 1 ? `${preview.peopleCount} people in` : null].filter(Boolean).join(' · ');
+  const avatar = face
+    ? img(face, 88, { borderRadius: 44, objectFit: 'cover', marginRight: 22 })
+    : el('div', { width: 88, height: 88, borderRadius: 44, marginRight: 22, background: '#ffffff', alignItems: 'center',
+      justifyContent: 'center', color: INK, fontSize: 40, fontWeight: 500 }, preview.ownerName.slice(0, 1));
 
-  const card = el('div', { width: '100%', height: '100%', padding: 40, background: '#fcfbf9' },
-    el('div', { flex: 1, flexDirection: 'column', justifyContent: 'space-between', padding: 64, borderRadius: 48, background: '#fff1c9' },
-      when ? el('div', { alignSelf: 'flex-start', padding: '10px 28px', borderRadius: 999, background: '#ffffff', color: '#292722', fontSize: 34 }, when) : el('div', {}),
-      el('div', { flexDirection: 'column' },
-        el('div', { color: '#77736b', fontSize: 38 }, `${preview.ownerName} wants to`),
-        el('div', { color: '#292722', fontSize: 80, lineHeight: 1.1, marginTop: 8 }, preview.text.trim()),
-        where ? el('div', { color: '#77736b', fontSize: 38, marginTop: 12 }, where) : null),
-      el('div', { alignItems: 'center', color: '#292722', fontSize: 32 },
-        { type: 'img', props: { src: 'https://outli.live/Assets/app-icon.png', width: 48, height: 48, style: { borderRadius: 12, marginRight: 16 } } },
-        preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli')));
+  const card = el('div', { width: '100%', height: '100%', flexDirection: 'column', justifyContent: 'space-between',
+    padding: '64px 72px', background: WASH, fontFamily: 'Inter', color: INK },
+    // When, and Outli.
+    el('div', { justifyContent: 'space-between', alignItems: 'center' },
+      when ? el('div', { padding: '12px 28px', borderRadius: 999, background: '#ffffff', fontSize: 32, fontWeight: 500 }, when) : el('div', {}),
+      el('div', { alignItems: 'center', fontSize: 30, fontWeight: 500 },
+        img('https://outli.live/Assets/app-icon.png', 44, { borderRadius: 11, marginRight: 14 }), 'Outli')),
+    // Who wants to do what.
+    el('div', { flexDirection: 'column' },
+      el('div', { alignItems: 'center', marginBottom: 18 },
+        avatar,
+        el('div', { fontSize: 38, color: SECONDARY }, `${preview.ownerName} wants to`)),
+      el('div', { fontSize: 84, fontWeight: 500, lineHeight: 1.18, letterSpacing: -1.5, maxHeight: 200, overflow: 'hidden', paddingBottom: 4 },
+        preview.text.trim())),
+    // Where and who's in, and the one action.
+    el('div', { justifyContent: 'space-between', alignItems: 'center' },
+      el('div', { fontSize: 32, color: SECONDARY }, details),
+      el('div', { padding: '16px 34px', borderRadius: 999, background: AMBER, fontSize: 32, fontWeight: 500 },
+        preview.needsApproval ? 'Ask to join' : 'Join on Outli')));
 
-  return new ImageResponse(card, { width: 1200, height: 630, headers: { 'Cache-Control': 'public, max-age=300' } });
+  return new ImageResponse(card, {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: 'Inter', data: regular, weight: 400, style: 'normal' },
+      { name: 'Inter', data: medium, weight: 500, style: 'normal' },
+    ],
+    headers: { 'Cache-Control': 'public, max-age=300' },
+  });
 }
