@@ -175,6 +175,10 @@
       $('state').textContent = p.plan ? 'Plan set' : p.peopleCount > 1 ? 'Planning' : 'Open';
       $('state').classList.toggle('set', Boolean(p.plan));
       $('joining').textContent = p.needsApproval ? `Ask to join in Outli; ${p.ownerName} says who's in.` : 'Anyone can join in Outli.';
+      // Two ways back after the App Store: Paste on the app's first screen, or (public
+      // activities only, which are on Discover) searching the want.
+      $('note').textContent = 'Tapping Get Outli copies this invite: in Outli, tap Paste on the first screen.' +
+        (p.isPrivate ? '' : ` Or search "${p.text.trim()}" in Outli.`);
       if (p.ownerPhotoUrl) {
         $('owner-photo').src = p.ownerPhotoUrl;
         $('owner-photo').hidden = false;
