@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-One unified site at `outli.live` (GitHub Pages, CNAME). The marketing homepage is the entry point; legal and support pages are integrated sub-pages.
+One unified site at `outli.live`, hosted on Vercel (team `nikolai4`, project `outli-live`) since 2026-11-09; DNS is at Namecheap (`legal` CNAME still points to GitHub Pages for the old legal site). The marketing homepage is the entry point; legal and support pages are integrated sub-pages.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ One unified site at `outli.live` (GitHub Pages, CNAME). The marketing homepage i
 - Mobile-first responsive design
 - No analytics/tracking scripts
 - Prefer CSS for behavior (`scroll-behavior: smooth`) over JS where possible
-- Deploy: `git push` to `main` → GitHub Pages live instantly
+- Deploy: push to `main` on the `outlilive` remote, then `vercel deploy --prod --scope nikolai4` (until the Vercel GitHub app is installed for this repo, pushes don't deploy by themselves). `/a/` is rendered by `api/a.js` so link previews show each activity's card (`api/card.js`); both read the `activityPreview` function in the GroupItV2 repo. `vercel.json` must keep serving `.well-known/apple-app-site-association` as JSON or universal links break.
 
 ## File Structure
 
