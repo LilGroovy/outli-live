@@ -3,6 +3,7 @@
 // one action. Inter, because SF Pro may not be used in server-rendered images.
 // Ended or unknown → the generic image.
 import { ImageResponse } from '@vercel/og';
+import { KIND_COLOURS, KIND_ICONS } from './_kinds.js';
 
 export const config = { runtime: 'edge' };
 
@@ -10,11 +11,12 @@ const PREVIEW_URL = 'https://europe-west1-groupitv2.cloudfunctions.net/activityP
 const FONT_URL = (weight) => `https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-${weight}-normal.woff`;
 const LABELS = { tonight: 'Tonight', tomorrow: 'Tomorrow', weekend: 'This weekend', flexible: 'Any time' };
 
-// Outli's colours (DesignToken.Color in the app). Until the app stores each activity's
-// hue, every card uses the warm amber wash.
+// Outli's colours (DesignToken.Color in the app). Activities posted before 2026.11.11
+// have no saved kind and get Outli's amber.
 const INK = '#292722';
 const SECONDARY = '#6f6b63';
 const WASH = '#fff1c9';
+const AMBER_INK = '#704b00';
 const CREAM = '#fcfbf9';
 const AMBER = '#ffb600';
 
@@ -71,9 +73,18 @@ export default async function handler(req) {
     : el('div', { width: 92, height: 92, borderRadius: 46, marginRight: 22, background: '#ffffff', alignItems: 'center',
       justifyContent: 'center', fontSize: 40, fontWeight: 500 }, preview.ownerName.slice(0, 1));
 
+  // The activity's kind as the app shows it: its wash, and its symbol drawn large in its
+  // ink, faded and running off the edge.
+  const colours = KIND_COLOURS[preview.kind] ?? { wash: WASH, ink: AMBER_INK };
+  const symbol = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${colours.ink}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${KIND_ICONS[preview.kind] ?? KIND_ICONS.other}</svg>`;
+  const watermark = { type: 'img', props: { src: `data:image/svg+xml;base64,${btoa(symbol)}`, width: 560, height: 560,
+    style: { position: 'absolute', right: -90, bottom: -120, width: 560, height: 560, opacity: 0.14, transform: 'rotate(-12deg)' } } };
+
   // The app's ActivityCard, large: when, what, where, then who's in, on the activity's wash.
   const card = el('div', { width: '100%', height: '100%', padding: 28, background: CREAM, fontFamily: 'Inter', color: INK },
-    el('div', { flex: 1, flexDirection: 'column', justifyContent: 'space-between', padding: '52px 60px', borderRadius: 52, background: WASH },
+    el('div', { flex: 1, position: 'relative', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between',
+      padding: '52px 60px', borderRadius: 52, background: colours.wash },
+      watermark,
       el('div', { flexDirection: 'column' },
         el('div', { justifyContent: 'space-between', alignItems: 'center', marginBottom: 36 },
           when ? el('div', { padding: '10px 26px', borderRadius: 999, background: '#ffffff', fontSize: 30, fontWeight: 500 }, when) : el('div', {}),
