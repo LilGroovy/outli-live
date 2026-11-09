@@ -21,15 +21,15 @@ export default async function handler(req) {
     .catch(() => null);
   if (!preview || preview.ended) return Response.redirect(new URL('/Assets/og-share.png', url), 302);
 
-  const when = preview.plan ? 'Plan set' : LABELS[preview.when] || 'Soon';
+  const when = preview.plan ? 'Plan set' : LABELS[preview.when];
   const where = preview.plan ? preview.plan.venueName : preview.placeName || preview.areaName;
 
   const card = el('div', { width: '100%', height: '100%', padding: 40, background: '#fcfbf9' },
     el('div', { flex: 1, flexDirection: 'column', justifyContent: 'space-between', padding: 64, borderRadius: 48, background: '#fff1c9' },
-      el('div', { alignSelf: 'flex-start', padding: '10px 28px', borderRadius: 999, background: '#ffffff', color: '#292722', fontSize: 34 }, when),
+      when ? el('div', { alignSelf: 'flex-start', padding: '10px 28px', borderRadius: 999, background: '#ffffff', color: '#292722', fontSize: 34 }, when) : el('div', {}),
       el('div', { flexDirection: 'column' },
         el('div', { color: '#77736b', fontSize: 38 }, `${preview.ownerName} wants to`),
-        el('div', { color: '#292722', fontSize: 80, lineHeight: 1.1, marginTop: 8 }, preview.text),
+        el('div', { color: '#292722', fontSize: 80, lineHeight: 1.1, marginTop: 8 }, preview.text.trim()),
         where ? el('div', { color: '#77736b', fontSize: 38, marginTop: 12 }, where) : null),
       el('div', { alignItems: 'center', color: '#292722', fontSize: 32 },
         { type: 'img', props: { src: 'https://outli.live/Assets/app-icon.png', width: 48, height: 48, style: { borderRadius: 12, marginRight: 16 } } },

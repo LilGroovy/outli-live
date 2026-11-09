@@ -167,9 +167,9 @@
         ? [planText(p.plan)]
         : [whenText(p.when, p.whenDate && new Date(p.whenDate)), p.placeName || p.areaName].filter(Boolean);
 
-      document.title = `${p.ownerName} wants to ${p.text} · Outli`;
+      document.title = `${p.ownerName} wants to ${p.text.trim()} · Outli`;
       $('who').textContent = `${p.ownerName} wants to`;
-      $('want').textContent = p.text;
+      $('want').textContent = p.text.trim();
       $('meta').textContent = [...details, p.peopleCount > 1 ? `${p.peopleCount} people in` : null].filter(Boolean).join(' · ');
       $('meta').hidden = $('meta').textContent === '';
       $('state').textContent = p.plan ? 'Plan set' : p.peopleCount > 1 ? 'Planning' : 'Open';

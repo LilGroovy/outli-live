@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   let html = template;
 
   if (preview && !preview.ended) {
-    const title = `${preview.ownerName} wants to ${preview.text}`;
+    const title = `${preview.ownerName} wants to ${preview.text.trim()}`;
     const where = preview.plan ? preview.plan.venueName : preview.placeName || preview.areaName;
     const description = [preview.plan ? 'Plan set' : LABELS[preview.when], where,
       preview.peopleCount > 1 ? `${preview.peopleCount} people in` : null,
