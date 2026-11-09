@@ -103,6 +103,7 @@
       <p class="want" id="want"></p>
       <div class="meta" id="meta"></div>
       <span class="pill" id="state"></span>
+      <div class="meta" id="joining"></div>
     </section>
 
     <section class="card" id="ended" hidden>
@@ -110,18 +111,21 @@
       <div class="meta">It's over or was removed. There's more on Outli: say what you want to do and see who's in.</div>
     </section>
 
-    <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Join on Outli</a>
+    <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Get Outli</a>
     <p class="note" id="note">Get Outli from the App Store, then open this link again to go straight to it.</p>
 
     <p class="about">Outli is where people nearby say what they want to do, tonight, tomorrow or this weekend. Join, chat, and meet up.</p>
   </main>
 
   <script>
-    // Reads the activity like a guest in the app does: public activities are readable
-    // without signing in (firestore.rules). Shows the want, when and where, the first
-    // name and photo of who posted it, and how many are in. Nothing else.
+    // Reads the activity from the activityPreview function (GroupItV2 functions/share.js):
+    // a link is an invitation, so private activities show too. Only the card's fields:
+    // the want, when and where, the owner's first name and photo, how many are in, and
+    // whether the owner approves who joins. On Vercel, /a is rendered by api/a.js, which
+    // passes the same preview in window.__PREVIEW__ so link previews show the real card.
     const id = new URLSearchParams(location.search).get('id');
     const $ = (el) => document.getElementById(el);
+    const PREVIEW_URL = 'https://europe-west1-groupitv2.cloudfunctions.net/activityPreview';
 
     function ended() {
       $('ended').hidden = false;
@@ -129,7 +133,6 @@
       $('note').hidden = true;
     }
 
-    const value = (field) => field && (field.stringValue ?? field.timestampValue ?? field.booleanValue ?? field.integerValue);
     const sameDay = (a, b) => a.toDateString() === b.toDateString();
 
     // Mirrors PostActivity.whenText(now:) in the app.
@@ -147,43 +150,33 @@
 
     // Mirrors MeetupPlan.summary: "Fri, 20:00 · Das Gift" in the plan's own time zone.
     function planText(plan) {
-      const startsAt = new Date(value(plan.startsAt));
-      const zone = value(plan.timeZone) || undefined;
+      const startsAt = new Date(plan.startsAt);
+      const zone = plan.timeZone || undefined;
       const day = startsAt.toLocaleDateString('en-GB', { weekday: 'short', timeZone: zone });
       const time = startsAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: zone });
-      return [`${day}, ${time}`, value(plan.venueName)].filter(Boolean).join(' · ');
+      return [`${day}, ${time}`, plan.venueName].filter(Boolean).join(' · ');
     }
 
     async function load() {
       if (!id) return ended();
-      const url = `https://firestore.googleapis.com/v1/projects/groupitv2/databases/(default)/documents/activities/${encodeURIComponent(id)}`;
-      const response = await fetch(url).catch(() => null);
-      if (!response || !response.ok) return ended();
-      const f = (await response.json()).fields || {};
-      if (value(f.isPrivate) === true) return ended();
+      const p = window.__PREVIEW__ ||
+        await fetch(`${PREVIEW_URL}?id=${encodeURIComponent(id)}`).then((r) => r.ok ? r.json() : null).catch(() => null);
+      if (!p || p.ended) return ended();
 
-      // Mirrors PostActivity.lifecycleState: past its expiry, or quiet for 14 days.
-      const now = Date.now();
-      const expiresAt = value(f.expiresAt) && Date.parse(value(f.expiresAt));
-      const lastActive = Date.parse(value(f.lastEngagementAt) || value(f.latestMessageTimestamp) || value(f.timestamp) || 0);
-      if ((expiresAt && expiresAt < now) || (!f.plan && lastActive < now - 14 * 86400000)) return ended();
+      const details = p.plan
+        ? [planText(p.plan)]
+        : [whenText(p.when, p.whenDate && new Date(p.whenDate)), p.placeName || p.areaName].filter(Boolean);
 
-      const owner = value(f.ownerName) || 'Someone';
-      const plan = f.plan && f.plan.mapValue && f.plan.mapValue.fields;
-      const people = (f.memberIds && f.memberIds.arrayValue && f.memberIds.arrayValue.values || []).length;
-      const details = plan
-        ? [planText(plan)]
-        : [whenText(value(f.when), value(f.whenDate) && new Date(value(f.whenDate))), value(f.areaName)].filter(Boolean);
-
-      document.title = `${owner} wants to ${value(f.text)} · Outli`;
-      $('who').textContent = `${owner} wants to`;
-      $('want').textContent = value(f.text);
-      $('meta').textContent = [...details, people > 1 ? `${people} people in` : null].filter(Boolean).join(' · ');
+      document.title = `${p.ownerName} wants to ${p.text} · Outli`;
+      $('who').textContent = `${p.ownerName} wants to`;
+      $('want').textContent = p.text;
+      $('meta').textContent = [...details, p.peopleCount > 1 ? `${p.peopleCount} people in` : null].filter(Boolean).join(' · ');
       $('meta').hidden = $('meta').textContent === '';
-      $('state').textContent = plan ? 'Plan set' : people > 1 ? 'Planning' : 'Open';
-      $('state').classList.toggle('set', Boolean(plan));
-      if (value(f.ownerProfileImageUrl)) {
-        $('owner-photo').src = value(f.ownerProfileImageUrl);
+      $('state').textContent = p.plan ? 'Plan set' : p.peopleCount > 1 ? 'Planning' : 'Open';
+      $('state').classList.toggle('set', Boolean(p.plan));
+      $('joining').textContent = p.needsApproval ? `Ask to join in Outli; ${p.ownerName} says who's in.` : 'Anyone can join in Outli.';
+      if (p.ownerPhotoUrl) {
+        $('owner-photo').src = p.ownerPhotoUrl;
         $('owner-photo').hidden = false;
       }
       $('activity').hidden = false;

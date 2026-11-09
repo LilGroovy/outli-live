@@ -1,0 +1,13 @@
+{
+  "routes": [
+    {
+      "src": "/.well-known/apple-app-site-association",
+      "headers": { "Content-Type": "application/json" },
+      "continue": true
+    },
+    { "src": "/a/?", "dest": "/api/a" }
+  ],
+  "functions": {
+    "api/a.js": { "includeFiles": "a/index.html" }
+  }
+}
