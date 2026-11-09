@@ -112,7 +112,7 @@
     </section>
 
     <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Get Outli</a>
-    <p class="note" id="note">Get Outli from the App Store, then open this link again to go straight to it.</p>
+    <p class="note" id="note">Tapping Get Outli copies this invite. In Outli, tap Paste on the first screen and you're right back here.</p>
 
     <p class="about">Outli is where people nearby say what they want to do, tonight, tomorrow or this weekend. Join, chat, and meet up.</p>
   </main>
@@ -181,6 +181,15 @@
       }
       $('activity').hidden = false;
     }
+
+    // Get Outli copies this invite first, so the app's first screen can open it
+    // ("Got an invite? Paste") after the App Store.
+    $('cta').addEventListener('click', async (event) => {
+      if ($('activity').hidden) return;
+      event.preventDefault();
+      try { await navigator.clipboard.writeText(location.href); } catch {}
+      location.href = $('cta').href;
+    });
 
     load();
   </script>
