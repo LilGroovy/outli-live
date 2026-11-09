@@ -1,7 +1,7 @@
-// The activity's card as the link preview image (1200×630): when, who (with their
-// face), what, where and who's in, and one action. Light, airy and warm like the
-// app: one full-bleed wash, no frames or shadows, Inter (SF Pro may not be used in
-// server-rendered images). Ended or unknown → the generic image.
+// The activity's card as the link preview image (1200×630): who (a big portrait, as
+// the app shows people), when, what, where and who's in, and one action that carries
+// the Outli mark. Inter, because SF Pro may not be used in server-rendered images.
+// Ended or unknown → the generic image.
 import { ImageResponse } from '@vercel/og';
 
 export const config = { runtime: 'edge' };
@@ -62,30 +62,30 @@ export default async function handler(req) {
   const when = preview.plan ? planTime(preview.plan) : LABELS[preview.when];
   const where = preview.plan ? preview.plan.venueName : preview.placeName || preview.areaName;
   const details = [where, preview.peopleCount > 1 ? `${preview.peopleCount} people in` : null].filter(Boolean).join(' · ');
-  const avatar = face
-    ? img(face, 88, { borderRadius: 44, objectFit: 'cover', marginRight: 22 })
-    : el('div', { width: 88, height: 88, borderRadius: 44, marginRight: 22, background: '#ffffff', alignItems: 'center',
-      justifyContent: 'center', color: INK, fontSize: 40, fontWeight: 500 }, preview.ownerName.slice(0, 1));
 
-  const card = el('div', { width: '100%', height: '100%', flexDirection: 'column', justifyContent: 'space-between',
-    padding: '64px 72px', background: WASH, fontFamily: 'Inter', color: INK },
-    // When, and Outli.
-    el('div', { justifyContent: 'space-between', alignItems: 'center' },
-      when ? el('div', { padding: '12px 28px', borderRadius: 999, background: '#ffffff', fontSize: 32, fontWeight: 500 }, when) : el('div', {}),
-      el('div', { alignItems: 'center', fontSize: 30, fontWeight: 500 },
-        img('https://outli.live/Assets/app-icon.png', 44, { borderRadius: 11, marginRight: 14 }), 'Outli')),
-    // Who wants to do what.
-    el('div', { flexDirection: 'column' },
-      el('div', { alignItems: 'center', marginBottom: 18 },
-        avatar,
-        el('div', { fontSize: 38, color: SECONDARY }, `${preview.ownerName} wants to`)),
-      el('div', { fontSize: 84, fontWeight: 500, lineHeight: 1.18, letterSpacing: -1.5, maxHeight: 200, overflow: 'hidden', paddingBottom: 4 },
-        preview.text.trim())),
-    // Where and who's in, and the one action.
-    el('div', { justifyContent: 'space-between', alignItems: 'center' },
-      el('div', { fontSize: 32, color: SECONDARY }, details),
-      el('div', { padding: '16px 34px', borderRadius: 999, background: AMBER, fontSize: 32, fontWeight: 500 },
-        preview.needsApproval ? 'Ask to join' : 'Join on Outli')));
+  // The owner as the app shows people: a 4:5 portrait with an amber ring and their name.
+  const portrait = el('div', { width: 360, height: 450, borderRadius: 40, border: `6px solid ${AMBER}`, overflow: 'hidden',
+    position: 'relative', background: '#ffffff', alignItems: 'center', justifyContent: 'center' },
+    face
+      ? { type: 'img', props: { src: face, width: 348, height: 438, style: { width: 348, height: 438, objectFit: 'cover' } } }
+      : el('div', { fontSize: 160, fontWeight: 500, color: INK }, preview.ownerName.slice(0, 1)),
+    el('div', { position: 'absolute', left: 18, bottom: 18, padding: '8px 20px', borderRadius: 999, background: '#ffffff',
+      fontSize: 28, fontWeight: 500, color: INK }, preview.ownerName));
+
+  const card = el('div', { width: '100%', height: '100%', alignItems: 'center', padding: '56px 64px', background: WASH,
+    fontFamily: 'Inter', color: INK },
+    el('div', { flex: 1, height: '100%', flexDirection: 'column', justifyContent: 'space-between', marginRight: 56 },
+      when ? el('div', { alignSelf: 'flex-start', padding: '10px 26px', borderRadius: 999, background: '#ffffff', fontSize: 30, fontWeight: 500 }, when) : el('div', {}),
+      el('div', { flexDirection: 'column' },
+        el('div', { fontSize: 34, color: SECONDARY, marginBottom: 10 }, `${preview.ownerName} wants to`),
+        el('div', { fontSize: 68, fontWeight: 500, lineHeight: 1.16, letterSpacing: -1.2, maxHeight: 240, overflow: 'hidden', paddingBottom: 4 },
+          preview.text.trim()),
+        details ? el('div', { fontSize: 30, color: SECONDARY, marginTop: 16 }, details) : null),
+      el('div', { alignSelf: 'flex-start', alignItems: 'center', padding: '12px 30px 12px 14px', borderRadius: 999, background: AMBER,
+        fontSize: 30, fontWeight: 500 },
+        img('https://outli.live/Assets/app-icon.png', 40, { borderRadius: 10, marginRight: 14 }),
+        preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli')),
+    portrait);
 
   return new ImageResponse(card, {
     width: 1200,
