@@ -32,7 +32,7 @@ export default async function handler(req) {
         el('div', { color: '#292722', fontSize: 80, lineHeight: 1.1, marginTop: 8 }, preview.text),
         where ? el('div', { color: '#77736b', fontSize: 38, marginTop: 12 }, where) : null),
       el('div', { alignItems: 'center', color: '#292722', fontSize: 32 },
-        { type: 'img', props: { src: `${url.origin}/Assets/app-icon.png`, width: 48, height: 48, style: { borderRadius: 12, marginRight: 16 } } },
+        { type: 'img', props: { src: 'https://outli.live/Assets/app-icon.png', width: 48, height: 48, style: { borderRadius: 12, marginRight: 16 } } },
         preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli')));
 
   return new ImageResponse(card, { width: 1200, height: 630, headers: { 'Cache-Control': 'public, max-age=300' } });
