@@ -67,9 +67,9 @@ export default async function handler(req) {
   const people = others <= 0 ? `Just ${preview.ownerName} so far`
     : `${preview.ownerName} and ${others === 1 ? '1 other' : `${others} others`}`;
   const face = ownerFace
-    ? img(ownerFace, 60, { borderRadius: 30, objectFit: 'cover', border: '3px solid #ffffff', marginRight: 18 })
-    : el('div', { width: 60, height: 60, borderRadius: 30, marginRight: 18, background: '#ffffff', alignItems: 'center',
-      justifyContent: 'center', fontSize: 28, fontWeight: 500 }, preview.ownerName.slice(0, 1));
+    ? img(ownerFace, 92, { borderRadius: 46, objectFit: 'cover', border: '4px solid #ffffff', marginRight: 22 })
+    : el('div', { width: 92, height: 92, borderRadius: 46, marginRight: 22, background: '#ffffff', alignItems: 'center',
+      justifyContent: 'center', fontSize: 40, fontWeight: 500 }, preview.ownerName.slice(0, 1));
 
   // The app's ActivityCard, large: when, what, where, then who's in, on the activity's wash.
   const card = el('div', { width: '100%', height: '100%', padding: 28, background: CREAM, fontFamily: 'Inter', color: INK },
@@ -82,7 +82,7 @@ export default async function handler(req) {
           preview.text.trim()),
         where ? el('div', { fontSize: 34, color: SECONDARY, marginTop: 10 }, where) : null),
       el('div', { justifyContent: 'space-between', alignItems: 'center' },
-        el('div', { alignItems: 'center', fontSize: 32 }, face, people),
+        el('div', { alignItems: 'center', fontSize: 34 }, face, people),
         el('div', { padding: '14px 32px', borderRadius: 999, background: AMBER, fontSize: 30, fontWeight: 500 },
           preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli'))));
 
