@@ -1,6 +1,6 @@
-// The activity's card as the link preview image (1200×630): who (a big portrait, as
-// the app shows people), when, what, where and who's in, and one action that carries
-// the Outli mark. Inter, because SF Pro may not be used in server-rendered images.
+// The activity's card as the link preview image (1200×630), laid out like the app's
+// ActivityCard: when, what (largest), where, then who's in with the owner's face, and
+// one action. Inter, because SF Pro may not be used in server-rendered images.
 // Ended or unknown → the generic image.
 import { ImageResponse } from '@vercel/og';
 
@@ -15,6 +15,7 @@ const LABELS = { tonight: 'Tonight', tomorrow: 'Tomorrow', weekend: 'This weeken
 const INK = '#292722';
 const SECONDARY = '#6f6b63';
 const WASH = '#fff1c9';
+const CREAM = '#fcfbf9';
 const AMBER = '#ffb600';
 
 // A tiny element helper so this stays plain JavaScript (no JSX build step).
@@ -57,35 +58,33 @@ export default async function handler(req) {
     .catch(() => null);
   if (!preview || preview.ended) return Response.redirect(new URL('/Assets/og-share.png', url), 302);
 
-  const [regular, medium, face] = await Promise.all([font(400), font(500), photo(preview.ownerPhotoUrl)]);
+  const [regular, medium, ownerFace] = await Promise.all([font(400), font(500), photo(preview.ownerPhotoUrl)]);
 
   const when = preview.plan ? planTime(preview.plan) : LABELS[preview.when];
   const where = preview.plan ? preview.plan.venueName : preview.placeName || preview.areaName;
-  const details = [where, preview.peopleCount > 1 ? `${preview.peopleCount} people in` : null].filter(Boolean).join(' · ');
+  // As the app's people line: "Just Lea so far", "Lea and 2 others".
+  const others = preview.peopleCount - 1;
+  const people = others <= 0 ? `Just ${preview.ownerName} so far`
+    : `${preview.ownerName} and ${others === 1 ? '1 other' : `${others} others`}`;
+  const face = ownerFace
+    ? img(ownerFace, 60, { borderRadius: 30, objectFit: 'cover', border: '3px solid #ffffff', marginRight: 18 })
+    : el('div', { width: 60, height: 60, borderRadius: 30, marginRight: 18, background: '#ffffff', alignItems: 'center',
+      justifyContent: 'center', fontSize: 28, fontWeight: 500 }, preview.ownerName.slice(0, 1));
 
-  // The owner as the app shows people: a 4:5 portrait with an amber ring and their name.
-  const portrait = el('div', { width: 360, height: 450, borderRadius: 40, border: `6px solid ${AMBER}`, overflow: 'hidden',
-    position: 'relative', background: '#ffffff', alignItems: 'center', justifyContent: 'center' },
-    face
-      ? { type: 'img', props: { src: face, width: 348, height: 438, style: { width: 348, height: 438, objectFit: 'cover' } } }
-      : el('div', { fontSize: 160, fontWeight: 500, color: INK }, preview.ownerName.slice(0, 1)),
-    el('div', { position: 'absolute', left: 18, bottom: 18, padding: '8px 20px', borderRadius: 999, background: '#ffffff',
-      fontSize: 28, fontWeight: 500, color: INK }, preview.ownerName));
-
-  const card = el('div', { width: '100%', height: '100%', alignItems: 'center', padding: '56px 64px', background: WASH,
-    fontFamily: 'Inter', color: INK },
-    el('div', { flex: 1, height: '100%', flexDirection: 'column', justifyContent: 'space-between', marginRight: 56 },
-      when ? el('div', { alignSelf: 'flex-start', padding: '10px 26px', borderRadius: 999, background: '#ffffff', fontSize: 30, fontWeight: 500 }, when) : el('div', {}),
+  // The app's ActivityCard, large: when, what, where, then who's in, on the activity's wash.
+  const card = el('div', { width: '100%', height: '100%', padding: 28, background: CREAM, fontFamily: 'Inter', color: INK },
+    el('div', { flex: 1, flexDirection: 'column', justifyContent: 'space-between', padding: '52px 60px', borderRadius: 52, background: WASH },
       el('div', { flexDirection: 'column' },
-        el('div', { fontSize: 34, color: SECONDARY, marginBottom: 10 }, `${preview.ownerName} wants to`),
-        el('div', { fontSize: 68, fontWeight: 500, lineHeight: 1.16, letterSpacing: -1.2, maxHeight: 240, overflow: 'hidden', paddingBottom: 4 },
+        el('div', { justifyContent: 'space-between', alignItems: 'center', marginBottom: 36 },
+          when ? el('div', { padding: '10px 26px', borderRadius: 999, background: '#ffffff', fontSize: 30, fontWeight: 500 }, when) : el('div', {}),
+          img('https://outli.live/Assets/app-icon.png', 52, { borderRadius: 13 })),
+        el('div', { fontSize: 84, fontWeight: 500, lineHeight: 1.14, letterSpacing: -1.5, maxHeight: 200, overflow: 'hidden', paddingBottom: 4 },
           preview.text.trim()),
-        details ? el('div', { fontSize: 30, color: SECONDARY, marginTop: 16 }, details) : null),
-      el('div', { alignSelf: 'flex-start', alignItems: 'center', padding: '12px 30px 12px 14px', borderRadius: 999, background: AMBER,
-        fontSize: 30, fontWeight: 500 },
-        img('https://outli.live/Assets/app-icon.png', 40, { borderRadius: 10, marginRight: 14 }),
-        preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli')),
-    portrait);
+        where ? el('div', { fontSize: 34, color: SECONDARY, marginTop: 10 }, where) : null),
+      el('div', { justifyContent: 'space-between', alignItems: 'center' },
+        el('div', { alignItems: 'center', fontSize: 32 }, face, people),
+        el('div', { padding: '14px 32px', borderRadius: 999, background: AMBER, fontSize: 30, fontWeight: 500 },
+          preview.needsApproval ? 'Ask to join on Outli' : 'Join on Outli'))));
 
   return new ImageResponse(card, {
     width: 1200,
