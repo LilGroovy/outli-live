@@ -27,8 +27,6 @@ function withTag(html, property, content) {
 export default async function handler(req, res) {
   const id = typeof req.query.id === 'string' ? req.query.id : '';
   const preview = await fetchPreview(id);
-  // Which app asked for which link, and what it got: to tell link-preview problems apart.
-  console.log(JSON.stringify({ id, ua: req.headers['user-agent'] ?? '', ended: !preview || preview.ended === true }));
   let html = template;
 
   if (preview && !preview.ended) {
