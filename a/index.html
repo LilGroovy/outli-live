@@ -90,6 +90,26 @@
       border-radius: 999px;
     }
     .note { margin: 0; color: var(--secondary); font-size: 0.9rem; text-align: center; line-height: 1.5; }
+    /* The visitor's own platform comes first and gets the amber button. */
+    .actions { display: flex; flex-direction: column; gap: 12px; }
+    .ios-block, .android-block { display: flex; flex-direction: column; gap: 12px; }
+    body.android .android-block { order: -1; }
+    .cta.secondary { background: transparent; color: var(--ink); border: 1px solid var(--border); font-weight: 500; }
+    button.cta { width: 100%; border: 0; cursor: pointer; font-family: inherit; }
+    button.cta.secondary { border: 1px solid var(--border); }
+    .android-form { display: flex; flex-direction: column; gap: 10px; }
+    .android-form label { font-size: 0.9rem; color: var(--secondary); }
+    .android-form input {
+      font: inherit;
+      font-size: 1rem;
+      padding: 13px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+    }
+    .fine { margin: 0; color: var(--secondary); font-size: 0.8rem; line-height: 1.45; text-align: center; }
+    .fine a { color: inherit; }
     .about { margin: 0; color: var(--secondary); font-size: 0.95rem; line-height: 1.55; }
     [hidden] { display: none !important; }
   </style>
@@ -111,8 +131,24 @@
       <div class="meta">It's over or was removed. There's more on Outli: say what you want to do and see who's in.</div>
     </section>
 
-    <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Get Outli</a>
-    <p class="note" id="note">Tapping Get Outli copies this invite. In Outli, tap Paste on the first screen and you're right back here.</p>
+    <div class="actions">
+      <div class="ios-block">
+        <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Get Outli on iPhone</a>
+        <p class="note" id="note" hidden>Tapping the button copies this invite. In Outli, tap Paste on the first screen and you're right back here.</p>
+      </div>
+
+      <!-- Until Outli is on Google Play: Android visitors leave an email to hear once. -->
+      <div class="android-block" id="android" hidden>
+        <button class="cta secondary" id="android-open" type="button">Tell me when it's on Android</button>
+        <form class="android-form" id="android-form" hidden>
+          <label for="android-email">Your email</label>
+          <input id="android-email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required />
+          <button class="cta" type="submit" id="android-submit">Notify me</button>
+          <p class="fine">We'll email you once when Outli is on Android, then delete your address. <a href="/privacy.html#android-waitlist">Privacy</a></p>
+        </form>
+        <p class="note" id="android-done" hidden>Thanks. We'll email you once when Outli is on Android.</p>
+      </div>
+    </div>
 
     <p class="about">Outli is where people nearby say what they want to do, tonight, tomorrow or this weekend. Join, chat, and meet up.</p>
   </main>
@@ -126,6 +162,19 @@
     const id = new URLSearchParams(location.search).get('id');
     const $ = (el) => document.getElementById(el);
     const PREVIEW_URL = 'https://europe-west1-groupitv2.cloudfunctions.net/activityPreview';
+    // Counts views and taps per platform, and takes Android emails (GroupItV2 functions/web.js).
+    // Nothing about the visitor is sent: the activity, what happened, and the platform.
+    const EVENT_URL = 'https://europe-west1-groupitv2.cloudfunctions.net/linkEvent';
+    const ua = navigator.userAgent;
+    const platform = /Android/i.test(ua) ? 'android'
+      : /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ios'
+      : 'desktop';
+
+    // text/plain keeps it a simple request (no CORS preflight); keepalive lets it finish
+    // while the page navigates to the App Store.
+    function report(event, extra = {}) {
+      return fetch(EVENT_URL, { method: 'POST', keepalive: true, body: JSON.stringify({ event, activityId: id, platform, ...extra }) });
+    }
 
     function ended() {
       $('ended').hidden = false;
@@ -177,20 +226,56 @@
       $('joining').textContent = p.needsApproval ? `Ask to join in Outli; ${p.ownerName} says who's in.` : 'Anyone can join in Outli.';
       // Two ways back after the App Store: Paste on the app's first screen, or (public
       // activities only, which are on Discover) searching the want.
-      $('note').textContent = 'Tapping Get Outli copies this invite: in Outli, tap Paste on the first screen.' +
+      $('note').textContent = 'Tapping the button copies this invite: in Outli, tap Paste on the first screen.' +
         (p.isPrivate ? '' : ` Or search "${p.text.trim()}" in Outli.`);
+      // The paste handover only matters on an iPhone.
+      $('note').hidden = platform !== 'ios';
       if (p.ownerPhotoUrl) {
         $('owner-photo').src = p.ownerPhotoUrl;
         $('owner-photo').hidden = false;
       }
       $('activity').hidden = false;
+      showAndroid();
+      report('view').catch(() => {});
     }
+
+    // On Android the email field is open and first; elsewhere it's a quiet second button.
+    function showAndroid() {
+      $('android').hidden = false;
+      if (platform !== 'android') return;
+      document.body.classList.add('android');
+      $('android-open').hidden = true;
+      $('android-form').hidden = false;
+      $('cta').classList.add('secondary');
+    }
+
+    $('android-open').addEventListener('click', () => {
+      $('android-open').hidden = true;
+      $('android-form').hidden = false;
+      $('android-email').focus();
+    });
+
+    $('android-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('android-submit');
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      const ok = await report('waitlist', { email: $('android-email').value.trim() }).then((r) => r.ok).catch(() => false);
+      if (ok) {
+        $('android-form').hidden = true;
+        $('android-done').hidden = false;
+      } else {
+        button.disabled = false;
+        button.textContent = 'Try again';
+      }
+    });
 
     // Get Outli copies this invite first, so the app's first screen can open it
     // ("Got an invite? Paste") after the App Store.
     $('cta').addEventListener('click', async (event) => {
       if ($('activity').hidden) return;
       event.preventDefault();
+      report('getIos').catch(() => {});
       try { await navigator.clipboard.writeText(location.href); } catch {}
       location.href = $('cta').href;
     });
