@@ -11,7 +11,8 @@ One unified site at `outli.live`, hosted on Vercel (team `nikolai4`, project `ou
 - Vanilla HTML5 + CSS + minimal JS only
 - No UI frameworks, no Tailwind, no build step, no package manager
 - Mobile-first responsive design
-- No analytics/tracking scripts
+- No analytics/tracking scripts. The one exception is first-party: `/a/` posts views, "Join on iPhone" taps and Android waitlist emails to the `linkEvent` function (GroupItV2 `functions/web.js`): counts per activity, day and platform, no cookies or identifiers. Keep it that way; the privacy policy (`#android-waitlist`) promises it.
+- Android waitlist (`_androidWaitlist` in Firestore): the privacy policy promises one email when Outli is on Android, then deletion. Send a confirmation (double opt-in) mail before that email, and delete every address afterwards.
 - Prefer CSS for behavior (`scroll-behavior: smooth`) over JS where possible
 - Deploy: push to `main` on the `outlilive` remote, then `vercel deploy --prod --scope nikolai4` (until the Vercel GitHub app is installed for this repo, pushes don't deploy by themselves). `/a/` is rendered by `api/a.js` so link previews show each activity's card (`api/card.js`); both read the `activityPreview` function in the GroupItV2 repo. `vercel.json` must keep serving `.well-known/apple-app-site-association` as JSON or universal links break.
 
@@ -23,7 +24,7 @@ One unified site at `outli.live`, hosted on Vercel (team `nikolai4`, project `ou
 - `support.html` — Support page with FAQ
 - `styles.css` — Shared stylesheet (common styles extracted from inline `<style>` blocks)
 - `outli_homepage_build_brief.md` — Spec for the marketing homepage
-- `a/index.html` — Shared activity page (`outli.live/a/?id=<activityId>`), the link the app's Share button sends. Reads the public activity from Firestore's REST API without signing in (the same fields a guest sees in the app: want, when/area or plan, first name and photo, how many are in) and links to the App Store; an ended or private activity shows "This one has ended". Static Open Graph tags with `Assets/og-share.png`.
+- `a/index.html` — Shared activity page (`outli.live/a/?id=<activityId>`), the link the app's Share button sends. Reads the public activity from Firestore's REST API without signing in (the same fields a guest sees in the app: want, when/area or plan, first name and photo, how many are in) and offers "Join on iPhone" (copies the invite for the app's Paste) and "Tell me when I can join on Android" (email); the visitor's platform comes first. An ended activity shows "This one has ended". Static Open Graph tags with `Assets/og-share.png`.
 - `.well-known/apple-app-site-association` — Universal links: `/a/*` opens in the Outli app (team `YLP246S525`, bundle `com.nikolaialtergott.GroupItV2`). Served because of `.nojekyll`; keep both.
 
 ## Architecture & Conventions
