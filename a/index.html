@@ -133,13 +133,13 @@
 
     <div class="actions">
       <div class="ios-block">
-        <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Get Outli on iPhone</a>
+        <a class="cta" href="https://apps.apple.com/app/id6760399990" id="cta">Join on iPhone</a>
         <p class="note" id="note" hidden>Tapping the button copies this invite. In Outli, tap Paste on the first screen and you're right back here.</p>
       </div>
 
       <!-- Until Outli is on Google Play: Android visitors leave an email to hear once. -->
       <div class="android-block" id="android" hidden>
-        <button class="cta secondary" id="android-open" type="button">Tell me when it's on Android</button>
+        <button class="cta secondary" id="android-open" type="button">Tell me when I can join on Android</button>
         <form class="android-form" id="android-form" hidden>
           <label for="android-email">Your email</label>
           <input id="android-email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required />
@@ -223,7 +223,10 @@
       $('meta').hidden = $('meta').textContent === '';
       $('state').textContent = p.plan ? 'Plan set' : p.peopleCount > 1 ? 'Planning' : 'Open';
       $('state').classList.toggle('set', Boolean(p.plan));
-      $('joining').textContent = p.needsApproval ? `Ask to join in Outli; ${p.ownerName} says who's in.` : 'Anyone can join in Outli.';
+      // The button says how to join; the card only adds who decides, when someone does.
+      $('joining').textContent = p.needsApproval ? `${p.ownerName} says who's in.` : '';
+      $('joining').hidden = !p.needsApproval;
+      $('cta').textContent = p.needsApproval ? 'Ask to join on iPhone' : 'Join on iPhone';
       // Two ways back after the App Store: Paste on the app's first screen, or (public
       // activities only, which are on Discover) searching the want.
       $('note').textContent = 'Tapping the button copies this invite: in Outli, tap Paste on the first screen.' +
